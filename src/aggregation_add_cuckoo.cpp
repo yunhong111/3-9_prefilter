@@ -95,7 +95,7 @@ size_t initAggregation(vector<string> &keyIns,vector<int> &keyPrefixIns,
     // find the dominant action on each tree
     for(size_t ti = 0; ti < trieNum; ti++)
     {
-		bTrie[ti].find_domi_action(keyActionIns);
+		bTrie[ti].find_domi_action(bTrie[ti].root8, keyActionIns);
 	}
 
     // --------------------------------------------------------

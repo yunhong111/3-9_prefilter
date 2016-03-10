@@ -3,7 +3,7 @@ CFLAGS = -O3     # optimize code
 DFLAGS =         # common defines
 OPENMP = -fopenmp
 
-OBJ =   otherFun.o trie.o cuckoo_filter.o  cuckoo_table.o hash_function.o sha1.o RL.o
+OBJ =   otherFun.o Trie_cuckoo_noise_07_21.o trie.o cuckoo_filter.o aggregation_add_cuckoo.o cuckoo_table.o hash_function.o sha1.o RL.o
 PROG = rl_ssw
 
 all:	$(PROG)
@@ -11,14 +11,17 @@ all:	$(PROG)
 otherFun.o:otherFun.cpp otherFun.h
 	$(CC) -c $(CFLAGS) otherFun.cpp 
 
-main.o:main.cpp
-	$(CC) -c $(OPENMP) $(CFLAGS) main.cpp
+Trie_cuckoo_noise_07_21.o:Trie_cuckoo_noise_07_21.cpp Trie_cuckoo_noise_07_21.h
+	$(CC) -c $(OPENMP) $(CFLAGS) Trie_cuckoo_noise_07_21.cpp
  
 trie.o:trie.cpp trie.h
 	$(CC) -c $(CFLAGS) trie.cpp  
 
 cuckoo_filter.o:cuckoo_filter.cpp cuckoo_filter.h
 	$(CC) -c $(CFLAGS) cuckoo_filter.cpp 
+ 
+aggregation_add_cuckoo.o:aggregation_add_cuckoo.cpp aggregation_add_cuckoo.h
+	$(CC) -c $(CFLAGS) aggregation_add_cuckoo.cpp
   
 cuckoo_table.o:cuckoo_table.cpp cuckoo_table.h
 	$(CC) -c $(CFLAGS) cuckoo_table.cpp

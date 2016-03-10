@@ -102,8 +102,14 @@ public:
 
     bool setPrefixAggregate(Node *pprefix);
 
-    bool printNode(Node *pnode,vector<char> word, vector<string> &key,vector<int> &keyaction,
-                   vector<string> &blackkey,vector<int> &blackkey_prefix, vector<string> &aggregatekey);
+    bool printNodes(Node *pnode,vector<char> word,vector<string> &key,
+                     vector<int> &keyaction,vector<string> &blackkey,
+                     vector<int> &blackkey_prefix, vector<string> &aggregatekey, vector<string> &other_keys,
+                     vector<int> &other_keyactions);
+                     
+    bool printNode(Node *pnode,vector<char> word,vector<string> &key,
+                     vector<int> &keyaction,vector<string> &blackkey,
+                     vector<int> &blackkey_prefix, vector<string> &aggregatekey);                     
 
     void setAgtInvalid(Node *pnode);
 
@@ -133,15 +139,19 @@ public:
 
     void compute_action_kn(Node* pnode, vector<size_t> &key_num_vec, vector<int>& actions);
     
-    void find_domi_action(vector<int>& actions);
+    void find_domi_action(Node* pnode, vector<int>& actions);
 
-    void aggregate_output(double weight_threshold, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
+    void aggregate_output(Node* pnode, double weight_threshold, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
                    size_t &countorikey, vector<string> &keys,
-                   vector<int> &keyaction,vector<string> &blackkey,
+                   vector<int> &keyaction,vector<string> &other_keys,
+                   vector<int> &other_keyaction,vector<string> &blackkey,
                    vector<int> &blackkeyPrefixes, vector<string> &aggregatekey,
                    int& prefixlength,
                    bool isPrint, bool isInit);
-
+    
+    bool isDominate(vector<size_t> &key_num_vec);
+    void printOtherKey(Node *pnode,vector<char> word,vector<string> &other_keys,
+                     vector<int> &other_keyactions);
 
     Node* root;
     Node* root8;

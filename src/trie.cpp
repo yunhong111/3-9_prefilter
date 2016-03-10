@@ -149,18 +149,9 @@ void Trie::addWord(string s,double weight, keyType keytype,int prefixlength, int
                 //key_weight_sum += weight;
                 //g_vcountkey_init[maction] ++;
             }
-            else
-            {
-                //current->key_weight = 0;
-                //current->key_num = 0;
-
-            }
         }
 
     }//for ( int i = 0; i < s.length(); i++ )
-
-    //delete(current);
-    //delete(tmp);
 }
 
 /** add item
@@ -441,9 +432,10 @@ bool Trie::getLeaf(Node *pnode,vector<char> word,vector<string> &flow, vector<si
 
 /** print node
 */
-bool Trie::printNode(Node *pnode,vector<char> word,vector<string> &key,
+bool Trie::printNodes(Node *pnode,vector<char> word,vector<string> &key,
                      vector<int> &keyaction,vector<string> &blackkey,
-                     vector<int> &blackkey_prefix, vector<string> &aggregatekey)
+                     vector<int> &blackkey_prefix, vector<string> &aggregatekey, vector<string> &other_keys,
+                     vector<int> &other_keyactions)
 {
 
     if(pnode == NULL)
@@ -468,7 +460,7 @@ bool Trie::printNode(Node *pnode,vector<char> word,vector<string> &key,
 
         }
         key.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)));
-        keyaction.push_back((maction));
+        keyaction.push_back((pnode->action));
         aggregatekey.push_back((parsebin2IPV4(&word_reverse[0])+"/"
                                 +num2str(pnode->prefixlength)));
 
@@ -479,11 +471,9 @@ bool Trie::printNode(Node *pnode,vector<char> word,vector<string> &key,
                                         "/"+num2str(pnode->prefixlength))<<endl;
 
         // --------------------------
-        // print blackkeys
+        // print blackkeys and other keys
         printBlackKey(pnode, word, blackkey, blackkey_prefix);
-
-
-
+        printOtherKey(pnode, word, other_keys, other_keyactions);
     }
     else if((pnode->wordMarker()) & pnode != root)
     {
@@ -519,6 +509,112 @@ bool Trie::printNode(Node *pnode,vector<char> word,vector<string> &key,
 
 
             }
+            
+            /*else if(pnode->keytype == iskey && pnode->action != maction)
+            {
+				
+			}
+            else if(pnode->keytype == isblackkey)
+            {
+                g_vcountblackkey[maction]++;
+                blackkey.push_back((parsebin2IPV4(&word_reverse[0])));
+                blackkey_prefix.push_back(pnode->prefixlength);
+
+
+            }*/
+
+        }
+
+    }
+
+    else
+    {
+        if(pnode != root)
+            word.push_back(pnode->content());
+        printNodes(pnode->left,word,key,keyaction,blackkey,blackkey_prefix,aggregatekey, other_keys, other_keyactions);
+        printNodes(pnode->right,word,key,keyaction,blackkey,blackkey_prefix,aggregatekey, other_keys, other_keyactions);
+    }
+
+    return true;
+
+}
+
+bool Trie::printNode(Node *pnode,vector<char> word,vector<string> &key,
+                     vector<int> &keyaction,vector<string> &blackkey,
+                     vector<int> &blackkey_prefix, vector<string> &aggregatekey)
+{
+
+    if(pnode == NULL)
+        return false;
+
+    if(pnode->keytype==isaggregatekey && pnode != root && pnode->prefixlength>=8)
+    {
+
+        vector<char> word_reverse;
+        vector<char> word_whole;
+
+        word_whole = word;
+        word_whole.push_back(pnode->content());
+        for(int i= word_whole.size(); i <32; i++ )
+        {
+            word_whole.push_back('0');
+        }
+
+        for(int i =0; i <word_whole.size(); i++)
+        {
+            word_reverse.push_back(word_whole[word_whole.size()-i-1]);
+
+        }
+        key.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)));
+        keyaction.push_back((pnode->action));
+        aggregatekey.push_back((parsebin2IPV4(&word_reverse[0])+"/"
+                                +num2str(pnode->prefixlength)));
+
+        if(word.size() == 0)
+        cout<<"agg word is null!"<<endl;
+        if(pnode->prefixlength == 2)
+            cout<<"* Line 560 Aggr: "<<(parsebin2IPV4(&word_reverse[0])+
+                                        "/"+num2str(pnode->prefixlength))<<endl;
+
+        // --------------------------
+        // print blackkeys and other keys
+        printBlackKey(pnode, word, blackkey, blackkey_prefix);
+        //printOtherKey(pnode, word, other_keys, other_keyactions);
+    }
+    else if((pnode->wordMarker()) & pnode != root)
+    {
+
+        word.push_back(pnode->content());
+        if(pnode->keytype == iskey | pnode->keytype == isblackkey)
+        {
+
+            vector<char> word_reverse;
+
+            for(int i= word.size(); i <32; i++ )
+            {
+                word.push_back('0');
+            }
+            for(int i =0; i <word.size(); i++)
+            {
+                word_reverse.push_back(word[word.size()-i-1]);
+
+            }
+
+            if(pnode->keytype == iskey && pnode->action == maction)
+            {
+                key.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)));
+                keyaction.push_back((maction));
+
+                if(word.size() == 0)
+                    cout<<"leaf word is null!"<<endl;
+
+                if(pnode->prefixlength == 2)
+            cout<<"* Line 592 Aggr: "<<(parsebin2IPV4(&word_reverse[0])+
+                                        "/"+num2str(pnode->prefixlength))<<endl;
+
+
+
+            }     
             else if(pnode->keytype == iskey && pnode->action != maction)
             {
 				
@@ -547,7 +643,6 @@ bool Trie::printNode(Node *pnode,vector<char> word,vector<string> &key,
     return true;
 
 }
-
 bool Trie::nodeCount(Node *pnode,size_t &countkey,size_t &countaggregatekey,
                      size_t &countblackkey,size_t &countorikey)
 {
@@ -592,14 +687,9 @@ bool Trie::nodeCount(Node *pnode,size_t &countkey,size_t &countaggregatekey,
             {
                 countblackkey++;
                 g_vcountblackkey[maction]++;
-
-
             }
-
         }
-
     }
-
     else
     {
 
@@ -610,8 +700,8 @@ bool Trie::nodeCount(Node *pnode,size_t &countkey,size_t &countaggregatekey,
     return true;
 
 }
-void Trie::printOtherKey(Node *pnode,vector<char> word,vector<string> &blackkey,
-                     vector<int> &blackkey_prefix)
+void Trie::printOtherKey(Node *pnode,vector<char> word,vector<string> &other_keys,
+                     vector<int> &other_keyactions)
 {
     if( pnode==NULL)
     {
@@ -636,11 +726,8 @@ void Trie::printOtherKey(Node *pnode,vector<char> word,vector<string> &blackkey,
 
         }
 
-        blackkey.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)));
-        blackkey_prefix.push_back((pnode->action));
-
-        //blackkey.push_back((parsebin2IPV4(&word_reverse[0])));
-        //blackkey_prefix.push_back(pnode->prefixlength);
+        other_keys.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)));
+        other_keyactions.push_back((pnode->action));
 
         if(word.size() == 0)
         cout<<"agg word is null!"<<endl;
@@ -651,8 +738,8 @@ void Trie::printOtherKey(Node *pnode,vector<char> word,vector<string> &blackkey,
     {
         if(pnode != root)
         word.push_back(pnode->content());
-        printOtherKey(pnode->left,  word,blackkey, blackkey_prefix);
-        printOtherKey(pnode->right, word,blackkey, blackkey_prefix);
+        printOtherKey(pnode->left,  word,other_keys, other_keyactions);
+        printOtherKey(pnode->right, word,other_keys, other_keyactions);
     }
 }
 void Trie::findBlackKey(Node *pnode, size_t &countblackkey)
@@ -851,7 +938,7 @@ int Trie::computeKeyNum(Node *pnode, keyType key_type)
     if(pnode->wordMarker())  /*pnode->wordMarker()*/
     {
         num = pnode->key_num;
-        if (key_type == iskey && pnode->action == dominant_action)
+        if (key_type == iskey && pnode->action == maction)
         {
             if (pnode->keytype == iskey)
                 num = pnode->key_num;
@@ -1324,24 +1411,66 @@ void Trie::compute_action_kn(Node* pnode, vector<size_t> &key_num_vec, vector<in
 }
 
 // find dominant action
-void Trie::find_domi_action(vector<int>& actions)
+void Trie::find_domi_action(Node* pnode, vector<int>& actions)
 {
+	if(pnode == NULL) return;
+	
 	vector<size_t> key_num_vec;
 	key_num_vec.assign(actions.size(), 0);
+	compute_action_kn(pnode, key_num_vec, actions);
+	
+	// if dominant action found, aggregate the node
+	if(isDominate(key_num_vec))
+	{
+		//arregatePrefix8(pnode,BIGKEYTHLD, 1);	
+		cout<<"computeKeyNum."<<endl;
+		computeKeyNum(pnode,iskey);
 
-	compute_action_kn(root, key_num_vec, actions);
-
-	int domi_index = distance(key_num_vec.begin(), max_element(key_num_vec.begin(), key_num_vec.end()));
-	dominant_action = actions[domi_index];
-	maction = actions[domi_index];
-
-	cout<<"* dominant index: "<<domi_index<<" domi action: "<<dominant_action<<endl;
+		cout<<"computeNodeNum."<<endl;
+		computeNodeNum(pnode);
+	
+		cout<<"arregatePrefix8."<<endl;
+		float weight_threshold = 0.0001;
+		int prefixlength = 18;
+		bool isInit = 1;
+		
+		arregatePrefix8(pnode, weight_threshold, prefixlength, isInit);
+	}
+	else
+	{
+		find_domi_action(pnode->left, actions);
+		find_domi_action(pnode->right, actions);
+	}
 }
 
+const double domi_threshold = 0.5;
+bool Trie::isDominate(vector<size_t> &key_num_vec)
+{
+	int domi_index = distance(key_num_vec.begin(), max_element(key_num_vec.begin(), key_num_vec.end()));
+	size_t max_sum = key_num_vec[domi_index];
+	
+	// sum of the  total number of nodes of all actions
+	int init = 0;
+	size_t sum_num = accumulate(key_num_vec.begin(), key_num_vec.begin(),init);
+	
+	// decide dominant action
+	if(max_sum > domi_threshold*sum_num && sum_num > 1)
+	{
+		// set dominant actions
+		dominant_action = domi_index;
+		maction = domi_index;
+		cout<<"* dominant index: "<<domi_index<<" domi action: "<<dominant_action<<endl;
+		return true;
+		
+	}
+	
+	return false;
+}
 
-void Trie::aggregate_output(double weight_threshold, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
+void Trie::aggregate_output(Node* pnode, double weight_threshold, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
                    size_t &countorikey, vector<string> &keys,
-                   vector<int> &keyaction,vector<string> &blackkey,
+                   vector<int> &keyaction,vector<string> &other_keys,
+                   vector<int> &other_keyaction,vector<string> &blackkey,
                    vector<int> &blackkeyPrefixes, vector<string> &aggregatekey,
                    int& prefixlength,
                    bool isPrint, bool isInit)
@@ -1349,20 +1478,28 @@ void Trie::aggregate_output(double weight_threshold, size_t &countkey,size_t &co
 	size_t recoverCount = 0;
 	vector<char> word;
 	
-	recoverTrie(root8, recoverCount);
+	cout<<"recover trie."<<endl;
+	recoverTrie(root, recoverCount);
 
-    computeKeyNum(root8,iskey);
+	cout<<"computeKeyNum."<<endl;
+    computeKeyNum(root,iskey);
 
+	cout<<"computeNodeNum."<<endl;
     computeNodeNum(root);
-
-    arregatePrefix8(root8, weight_threshold, prefixlength, isInit);
-
+	
+	cout<<"arregatePrefix8."<<endl;
+    arregatePrefix8(root, weight_threshold, prefixlength, isInit);
+	
+	cout<<"nodeCount."<<endl;
     nodeCount(root,countkey,countaggregatekey,countblackkey,countorikey);
 
+	cout<<"printNodes."<<endl;
+	
     // print key and blackkey to file
     if(isPrint)
-         printNode(root,word,keys,keyaction,blackkey,blackkeyPrefixes,aggregatekey);
+         printNodes(root,word,keys,keyaction,blackkey,blackkeyPrefixes,aggregatekey,other_keys, other_keyaction);
 
 }
+
 
 

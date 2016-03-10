@@ -85,6 +85,12 @@ struct ActionOrder
     vector<uint16_t> aTrieOder;
 };
 
+struct Keys{
+	string ipv4;
+	size_t ip_int;
+	int prefix;
+	int action;
+};
 
 long print_elapsed(const char* desc, struct timeval* start, struct timeval* end, int niters);
 
