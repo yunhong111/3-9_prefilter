@@ -660,7 +660,7 @@ bool Trie::nodeCount(Node *pnode,size_t &countkey,size_t &countaggregatekey,
     if(pnode->keytype==isaggregatekey)
     {
         countkey++;
-        g_vcountkey[maction]++;
+        //g_vcountkey[maction]++;
         countaggregatekey++;
 
         // find blackkey
@@ -675,7 +675,7 @@ bool Trie::nodeCount(Node *pnode,size_t &countkey,size_t &countaggregatekey,
         {
 
             countkey++;
-            g_vcountkey[maction]++;
+            //g_vcountkey[maction]++;
 
             if(pnode->keytype == iskey)
             {
@@ -686,7 +686,7 @@ bool Trie::nodeCount(Node *pnode,size_t &countkey,size_t &countaggregatekey,
             else if(pnode->keytype == isblackkey)
             {
                 countblackkey++;
-                g_vcountblackkey[maction]++;
+                //g_vcountblackkey[maction]++;
             }
         }
     }
@@ -1402,7 +1402,6 @@ void Trie::compute_action_kn(Node* pnode, vector<size_t> &key_num_vec, vector<in
 		if(pnode->action == actions[ai])
 		{
 			key_num_vec[ai] += 1;
-
 		}
 	}
 	
@@ -1419,8 +1418,15 @@ void Trie::find_domi_action(Node* pnode, vector<int>& actions)
 	key_num_vec.assign(actions.size(), 0);
 	compute_action_kn(pnode, key_num_vec, actions);
 	
+	vector<size_t>::iterator it;
+	for(it = key_num_vec.begin(); it!= key_num_vec.end(); it++)
+	{
+		cout<<*it<<" ";
+	}
+	cout<<endl;
+	
 	// if dominant action found, aggregate the node
-	if(isDominate(key_num_vec))
+	if(isDominate(key_num_vec) && pnode->prefixlength >= 8)
 	{
 		//arregatePrefix8(pnode,BIGKEYTHLD, 1);	
 		cout<<"computeKeyNum."<<endl;
@@ -1450,9 +1456,9 @@ bool Trie::isDominate(vector<size_t> &key_num_vec)
 	size_t max_sum = key_num_vec[domi_index];
 	
 	// sum of the  total number of nodes of all actions
-	int init = 0;
-	size_t sum_num = accumulate(key_num_vec.begin(), key_num_vec.begin(),init);
-	
+	size_t sum_num = accumulate(key_num_vec.begin(), key_num_vec.end(),0);
+
+	cout<<max_sum<<" "<<sum_num<<endl;
 	// decide dominant action
 	if(max_sum > domi_threshold*sum_num && sum_num > 1)
 	{
@@ -1460,35 +1466,18 @@ bool Trie::isDominate(vector<size_t> &key_num_vec)
 		dominant_action = domi_index;
 		maction = domi_index;
 		cout<<"* dominant index: "<<domi_index<<" domi action: "<<dominant_action<<endl;
-		return true;
-		
+		return true;	
 	}
 	
 	return false;
 }
 
-void Trie::aggregate_output(Node* pnode, double weight_threshold, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
+void Trie::aggregate_output(Node* pnode, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
                    size_t &countorikey, vector<string> &keys,
                    vector<int> &keyaction,vector<string> &other_keys,
                    vector<int> &other_keyaction,vector<string> &blackkey,
-                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey,
-                   int& prefixlength,
-                   bool isPrint, bool isInit)
+                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey, bool isPrint)
 {
-	size_t recoverCount = 0;
-	vector<char> word;
-	
-	cout<<"recover trie."<<endl;
-	recoverTrie(root, recoverCount);
-
-	cout<<"computeKeyNum."<<endl;
-    computeKeyNum(root,iskey);
-
-	cout<<"computeNodeNum."<<endl;
-    computeNodeNum(root);
-	
-	cout<<"arregatePrefix8."<<endl;
-    arregatePrefix8(root, weight_threshold, prefixlength, isInit);
 	
 	cout<<"nodeCount."<<endl;
     nodeCount(root,countkey,countaggregatekey,countblackkey,countorikey);
@@ -1496,6 +1485,7 @@ void Trie::aggregate_output(Node* pnode, double weight_threshold, size_t &countk
 	cout<<"printNodes."<<endl;
 	
     // print key and blackkey to file
+    vector<char> word;
     if(isPrint)
          printNodes(root,word,keys,keyaction,blackkey,blackkeyPrefixes,aggregatekey,other_keys, other_keyaction);
 

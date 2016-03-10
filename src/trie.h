@@ -141,13 +141,11 @@ public:
     
     void find_domi_action(Node* pnode, vector<int>& actions);
 
-    void aggregate_output(Node* pnode, double weight_threshold, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
+    void aggregate_output(Node* pnode, size_t &countkey,size_t &countaggregatekey, size_t &countblackkey,
                    size_t &countorikey, vector<string> &keys,
                    vector<int> &keyaction,vector<string> &other_keys,
                    vector<int> &other_keyaction,vector<string> &blackkey,
-                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey,
-                   int& prefixlength,
-                   bool isPrint, bool isInit);
+                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey, bool isPrint);
     
     bool isDominate(vector<size_t> &key_num_vec);
     void printOtherKey(Node *pnode,vector<char> word,vector<string> &other_keys,

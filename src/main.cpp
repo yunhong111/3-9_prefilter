@@ -43,6 +43,11 @@ void add_keys(char* infile_name, Trie* trie, ints uni_actions)
 	}
 }
 
+void to_file()
+{
+	
+}
+
 void aggr(Trie* trie, ints uni_actions)
 {
 	cout<<"aggregation start."<<endl;
@@ -66,7 +71,12 @@ void aggr(Trie* trie, ints uni_actions)
     bool isInit;
                    
 	trie->find_domi_action(trie->root, uni_actions);
-    
+	
+	trie->aggregate_output(trie->root,  countkey, countaggregatekey,  countblackkey,
+                    countorikey, keys,keyaction,other_keys, other_keyaction,blackkey,
+                   blackkeyPrefixes, aggregatekey, isPrint);
+                   
+    cout<<keys.size()<<" "<<other_keys.size()<<" "<<blackkey.size()<<endl;
     // output to file
     
 }
