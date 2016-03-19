@@ -14,12 +14,27 @@ using namespace std;
 
 typedef vector<int> ints;
 
+void to_file(char* file_name, vector<string> &keys, vector<int> &keyaction)
+{
+	ofstream outfile_key(file_name);
+	//ofstream outfile_otherkey("../test/other_keys.csv");
+
+	//vector<string>::iterator it;
+	for(int i = 0; i < keys.size(); i++)
+	{
+		outfile_key<<keys[i]<<" "<<keyaction[i]<<endl;
+	}
+
+	outfile_key.close();
+}
+
 // assign random actions to a key
 int assign_rand_action(ints uni_actions)
 {
 	int action_size = uni_actions.size();
 	return uni_actions[rand()%action_size];
 }
+
 
 // add keys to trie
 void add_keys(char* infile_name, Trie* trie, ints uni_actions)
@@ -34,19 +49,25 @@ void add_keys(char* infile_name, Trie* trie, ints uni_actions)
 	// add the keys to trie
 	int key_prefix;
 	string key_ipv4;
-	size_t key_num = 0;
+	int key_action;
 	
-	while(infile >> key_prefix >> key_ipv4)
+	size_t key_num = 0;
+
+	//ofstream outfile("../test/key_actions");
+	
+	while(infile >> key_prefix >> key_ipv4>>key_action)
 	{
-		int key_action = assign_rand_action(uni_actions);
-		trie->addWord(key_ipv4,0, iskey, key_prefix, key_action);
+		//int key_action = assign_rand_action(uni_actions);
+		
+		// to binary string
+		string key_binary = parseIPV42bin(key_ipv4.c_str());
+		trie->addWord(key_binary,0, iskey, key_prefix, key_action);
+		//outfile<<key_prefix<<" "<<key_ipv4<<" "<<key_action<<endl;
 	}
+	//outfile.close();
 }
 
-void to_file()
-{
-	
-}
+
 
 void aggr(Trie* trie, ints uni_actions)
 {
@@ -67,16 +88,22 @@ void aggr(Trie* trie, ints uni_actions)
     vector<string> aggregatekey;
     
     int prefixlength;
-    bool isPrint; 
+    bool isPrint = 1; 
     bool isInit;
                    
 	trie->find_domi_action(trie->root, uni_actions);
 	
-	trie->aggregate_output(trie->root,  countkey, countaggregatekey,  countblackkey,
-                    countorikey, keys,keyaction,other_keys, other_keyaction,blackkey,
+	trie->aggregate_output(trie->root,  countkey, countaggregatekey,  countblackkey,\
+                    countorikey, keys,keyaction,other_keys, other_keyaction,blackkey,\
                    blackkeyPrefixes, aggregatekey, isPrint);
-                   
+             
     cout<<keys.size()<<" "<<other_keys.size()<<" "<<blackkey.size()<<endl;
+    
+    char* key_file_name = (char* )("../test/key_out.csv");
+    to_file(key_file_name, keys,keyaction);
+
+    char* otherkey_file_name = (char* )("../test/other_key_out.csv");
+    to_file(otherkey_file_name, other_keys,other_keyaction);
     // output to file
     
 }

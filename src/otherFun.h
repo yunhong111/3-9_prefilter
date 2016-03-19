@@ -70,7 +70,8 @@ enum keyType
     isbignonkey = 6,
     invalid = 0,
     invalidkey = 7,
-    cannotaggr = 8
+    cannotaggr = 8,
+    isotherkey = 9
 };
 
 struct SubIPv

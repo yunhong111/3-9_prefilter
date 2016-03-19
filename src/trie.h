@@ -62,6 +62,7 @@ public:
     int bignk;
     int prefixlength;
     int action;
+    int domi_action;
     //vector<Node*> mChildren;
 private:
     char mContent;
@@ -150,6 +151,7 @@ public:
     bool isDominate(vector<size_t> &key_num_vec);
     void printOtherKey(Node *pnode,vector<char> word,vector<string> &other_keys,
                      vector<int> &other_keyactions);
+
 
     Node* root;
     Node* root8;
