@@ -435,7 +435,7 @@ bool Trie::getLeaf(Node *pnode,vector<char> word,vector<string> &flow, vector<si
 */
 bool Trie::printNodes(Node *pnode,vector<char> word,vector<string> &key,
                      vector<int> &keyaction,vector<string> &blackkey,
-                     vector<int> &blackkey_prefix, vector<string> &aggregatekey, vector<string> &other_keys,
+                     vector<int> &blackkey_prefix, vector<string> &aggregatekey, vector<int>& aggr_actions, vector<string> &other_keys,
                      vector<int> &other_keyactions)
 {
 
@@ -461,9 +461,10 @@ bool Trie::printNodes(Node *pnode,vector<char> word,vector<string> &key,
 
         }
         key.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)));
-        keyaction.push_back((pnode->domi_action));
+        keyaction.push_back(pnode->domi_action);
         aggregatekey.push_back((parsebin2IPV4(&word_reverse[0])+"/"
                                 +num2str(pnode->prefixlength)));
+        aggr_actions.push_back(pnode->domi_action);
 
         if(word.size() == 0)
         cout<<"agg word is null!"<<endl;
@@ -482,8 +483,6 @@ bool Trie::printNodes(Node *pnode,vector<char> word,vector<string> &key,
         printOtherKey(pnode, word, other_keys, other_keyactions);
 
         //cout<<"other keys end."<<endl;
-
-        
     }
     else if((pnode->wordMarker()) & pnode != root)
     {
@@ -539,8 +538,8 @@ bool Trie::printNodes(Node *pnode,vector<char> word,vector<string> &key,
     {
         if(pnode != root)
             word.push_back(pnode->content());
-        printNodes(pnode->left,word,key,keyaction,blackkey,blackkey_prefix,aggregatekey, other_keys, other_keyactions);
-        printNodes(pnode->right,word,key,keyaction,blackkey,blackkey_prefix,aggregatekey, other_keys, other_keyactions);
+        printNodes(pnode->left,word,key,keyaction,blackkey,blackkey_prefix,aggregatekey, aggr_actions, other_keys, other_keyactions);
+        printNodes(pnode->right,word,key,keyaction,blackkey,blackkey_prefix,aggregatekey, aggr_actions, other_keys, other_keyactions);
     }
 
     return true;
@@ -713,11 +712,9 @@ void Trie::printOtherKey(Node *pnode,vector<char> word,vector<string> &other_key
     {
         return;
     }
-    if(pnode->wordMarker())
-	 cout<<"print other keys! "<<pnode->keytype<<" "<<pnode->action<<" "<<endl;
+    
     if((pnode->keytype == iskey || pnode->keytype == invalidkey) && pnode->wordMarker() && pnode->action != pnode->domi_action)
     {
-		cout <<"print other keys!"<<endl;
         vector<char> word_reverse;
         vector<char> word_whole;
 
@@ -734,14 +731,12 @@ void Trie::printOtherKey(Node *pnode,vector<char> word,vector<string> &other_key
 
         }
 
-        other_keys.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)+"/"+num2str(pnode->domi_action)));
+        other_keys.push_back((parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength)));//+"/"+num2str(pnode->domi_action)));
         other_keyactions.push_back((pnode->action));
 
         if(word.size() == 0)
         cout<<"agg word is null!"<<endl;
 
-        cout<<(parsebin2IPV4(&word_reverse[0])+"/"+num2str(pnode->prefixlength))<<" "<<pnode->action<<endl;
-        cout<<(&word_reverse[0])<<endl;
 
     }
 
@@ -1009,54 +1004,61 @@ void Trie::arregatePrefix(Node *pnode,double sBIGKEYTHLD, bool isInit)
     {
         return;
     }
-    if(pnode->node_num > 1 && pnode->keytype != isaggregatekey) // if key_num > 1
+    if(pnode->node_num > 1 && pnode->keytype != isaggregatekey && pnode->keytype != cannotaggr && pnode->prefixlength >= 8) // if key_num > 1
     {
 
-        if(pnode->left != NULL && pnode->right != NULL) // if the node have two children, we can aggregate it
+        if(((float(pnode->key_num)/float(pow(2.0f,32-pnode->prefixlength))) >= (32-pnode->prefixlength)/2.0*sBIGKEYTHLD) && isInit)
         {
+            //setPrefixAggregate(pnode);
+            //cout<<pnode->node_num
+            //cout<<pnode->key_num<<" ";
+            setBlackKey(pnode);
+            setBigKey(pnode);
+            setPrefixAggregate(pnode);
+            //if(pnode->prefixlength == 17)
+            //cout<<"Line 910, prefix error!"<<endl;
+            vector<char> word;
+            vector<string> other_keys;
+            vector<int> other_keyactions;
+            printOtherKey(pnode, word, other_keys, other_keyactions);
 
-            if(((float(pnode->key_num)/float(pow(2.0f,32-pnode->prefixlength))) >= sBIGKEYTHLD) && isInit)
-            {
-					//cout<<pnode->key_num<<" ";
-                    setBlackKey(pnode);
-                    setBigKey(pnode);
-                    setPrefixAggregate(pnode);
-            }
+        }
 
-            /*else if(pnode->key_weight/pnode->weight >= sBIGKEYTHLD & isInit == 0)
+        /*else if(pnode->key_weight/pnode->weight >= sBIGKEYTHLD && isInit == 0)
+        {
+            setPrefixAggregate(pnode);
+            setBigKey(pnode);
+            setPrefixAggregate(pnode);
+            //cout<<"weight    "<<(pnode->key_weight/pnode->weight)<<endl;
+        }*/
+        else if((float(pnode->key_num)/float(pnode->leaf_num)) >= KEYTHLD&& isInit == 0)
+        {
+            //cout<<(float(pnode->key_num)/float(pnode->leaf_num))<<endl;
+            //if(pnode->bignk <= pnode->key_num/2)
             {
                 setBigKey(pnode);
                 setPrefixAggregate(pnode);
-                //cout<<"weight    "<<(pnode->key_weight/pnode->weight)<<endl;
-            }*/
-            else if((float(pnode->key_num)/float(pnode->leaf_num)) >= KEYTHLD  & isInit == 0)
-            {
-                //cout<<(float(pnode->key_num)/float(pnode->leaf_num))<<endl;
-                //if(pnode->bignk <= pnode->key_num/2)
-                {
-                    setBigKey(pnode);
-                    setPrefixAggregate(pnode);
-                    //cout<<"num"<<endl;
-
-                }
+                //cout<<"num"<<endl;
 
             }
-            else
-            {
 
-                {
-                    arregatePrefix(pnode->left,sBIGKEYTHLD, isInit);
-                    arregatePrefix(pnode->right,sBIGKEYTHLD, isInit);
-                }
-            }
         }
         else
         {
 
-            {
-                arregatePrefix(pnode->left,sBIGKEYTHLD, isInit);
-                arregatePrefix(pnode->right,sBIGKEYTHLD, isInit);
-            }
+
+            arregatePrefix(pnode->left,sBIGKEYTHLD,isInit);
+            arregatePrefix(pnode->right,sBIGKEYTHLD,isInit);
+
+        }
+
+    }
+    else
+    {
+
+        {
+            arregatePrefix(pnode->left,sBIGKEYTHLD,isInit);
+            arregatePrefix(pnode->right,sBIGKEYTHLD,isInit);
         }
     }
 }
@@ -1088,7 +1090,7 @@ void Trie::arregatePrefix8(Node *pnode,double sBIGKEYTHLD, int& aggrprefixlength
         {
             //setPrefixAggregate(pnode);
             //cout<<pnode->node_num
-            cout<<pnode->key_num<<" ";
+            //cout<<pnode->key_num<<" ";
             setBlackKey(pnode);
             setBigKey(pnode);
             setPrefixAggregate(pnode);
@@ -1460,16 +1462,52 @@ void Trie::find_domi_action(Node* pnode, vector<int>& actions)
 		//cout<<"computeKeyNum."<<endl;
 		computeKeyNum(pnode,iskey);
 
-		cout<<pnode->key_num<<endl;
+		//cout<<pnode->key_num<<endl;
 		//cout<<"computeNodeNum."<<endl;
 		computeNodeNum(pnode);
 	
 		//cout<<"arregatePrefix8."<<endl;
 		float weight_threshold = 0.00001;
-		int prefixlength = 18;
+		switch(maction)
+		{
+		case 0:
+			{
+				//weight_threshold = 0.0000173; // domi_threshold = 0.5
+				//weight_threshold = 0.0000174; // domi_threshold = 1, no noise
+				weight_threshold = 0.000015;
+				//weight_threshold = 0.00001;
+				break;
+			}
+		case 1:
+			{
+				//weight_threshold = 0.0000178;
+				//weight_threshold = 0.0000175;
+				weight_threshold = 0.000015;
+				//weight_threshold = 0.00001;
+				break;
+			}
+		case 2:
+			{
+				//weight_threshold = 0.0000173;
+				//weight_threshold = 0.0000174;
+				weight_threshold = 0.000015;
+				//weight_threshold = 0.00001;
+				break;
+			}
+		case 3:
+			{
+				//weight_threshold = 0.0000172;
+				//weight_threshold = 0.0000174;
+				weight_threshold = 0.000015;
+				//weight_threshold = 0.000095;
+				break;
+			}
+		}
+		weight_threshold = 0.00001;
+		int prefixlength = 1755;
 		bool isInit = 1;
 		
-		arregatePrefix8(pnode, weight_threshold, prefixlength,isInit);
+		arregatePrefix(pnode, weight_threshold,isInit);
 	}
 	else
 	{
@@ -1489,9 +1527,9 @@ bool Trie::isDominate(vector<size_t> &key_num_vec)
 
 	
 	// decide dominant action
-	if(max_sum > domi_threshold*sum_num && sum_num > 1)
+	if(max_sum >= domi_threshold*sum_num && sum_num > 1)
 	{
-		cout<<max_sum<<" "<<sum_num<<" ";
+		//cout<<max_sum<<" "<<sum_num<<" ";
 		// set dominant actions
 		dominant_action = domi_index;
 		maction = domi_index;
@@ -1506,7 +1544,7 @@ void Trie::aggregate_output(Node* pnode, size_t &countkey,size_t &countaggregate
                    size_t &countorikey, vector<string> &keys,
                    vector<int> &keyaction,vector<string> &other_keys,
                    vector<int> &other_keyaction,vector<string> &blackkey,
-                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey, bool isPrint)
+                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey, vector<int>& aggr_actions, bool isPrint)
 {
 	
 	cout<<"nodeCount....."<<endl;
@@ -1517,7 +1555,7 @@ void Trie::aggregate_output(Node* pnode, size_t &countkey,size_t &countaggregate
     // print key and blackkey to file
     vector<char> word;
     if(isPrint)
-         printNodes(root,word,keys,keyaction,blackkey,blackkeyPrefixes,aggregatekey,other_keys, other_keyaction);
+         printNodes(root,word,keys,keyaction,blackkey,blackkeyPrefixes,aggregatekey,aggr_actions, other_keys, other_keyaction);
 
 }
 

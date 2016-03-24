@@ -7,13 +7,14 @@ create time: 07/21/2015
 
 #include "Trie_cuckoo_noise_07_21.h"
 
-ofstream outfileR;
+
 
 float maxHaoOver = 0.0;
 int indexHaoOver = 0.0;
 float minHaoOver = 1.0;
 int indexMinHaoOver = 0.0;
 
+ofstream outfileR;
 // packet generation rate: pps
 const float rateParameter0 = 297298.0;
 
@@ -543,8 +544,6 @@ int main(int argc, char * argv[])
                                     //break;
                                 }
                             }
-
-
                         }
 
                         // ------------------------------
@@ -1493,8 +1492,6 @@ int actionSize, size_ts& slotNums, size_t line)
 
     blackKeyFileOut.clear();
     blackKeyFileOut.close();
-
-
 }
 
 void printQList(RLearn* rLearn)

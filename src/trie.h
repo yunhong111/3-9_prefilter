@@ -105,8 +105,8 @@ public:
 
     bool printNodes(Node *pnode,vector<char> word,vector<string> &key,
                      vector<int> &keyaction,vector<string> &blackkey,
-                     vector<int> &blackkey_prefix, vector<string> &aggregatekey, vector<string> &other_keys,
-                     vector<int> &other_keyactions);
+                     vector<int> &blackkey_prefix, vector<string> &aggregatekey, vector<int>& aggr_actions,
+                     vector<string> &other_keys, vector<int> &other_keyactions);
                      
     bool printNode(Node *pnode,vector<char> word,vector<string> &key,
                      vector<int> &keyaction,vector<string> &blackkey,
@@ -146,7 +146,7 @@ public:
                    size_t &countorikey, vector<string> &keys,
                    vector<int> &keyaction,vector<string> &other_keys,
                    vector<int> &other_keyaction,vector<string> &blackkey,
-                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey, bool isPrint);
+                   vector<int> &blackkeyPrefixes, vector<string> &aggregatekey, vector<int>& aggr_actions, bool isPrint);
     
     bool isDominate(vector<size_t> &key_num_vec);
     void printOtherKey(Node *pnode,vector<char> word,vector<string> &other_keys,

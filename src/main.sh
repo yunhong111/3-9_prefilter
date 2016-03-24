@@ -18,7 +18,7 @@ for i in $(seq 5 5)
 do
 	export OMP_NUM_THREADS=1
 
-	./rl_ssw ../test/key_actions
+	./rl_ssw ../test/key_actions_0_1 ${ipfileFolder}
 
 done
 
